@@ -84,8 +84,8 @@ Answer:"""
     return call_together_stream(prompt), context
 
 # === STREAMLIT UI ===
-st.set_page_config(page_title="Decidim RAG Chatbot", layout="centered")
-st.title("🗳️ Ask me about Decidim")
+st.set_page_config(page_title="Decidim Chatbot", layout="centered")
+st.title("🗳️ Decidim Chatbot")
 
 if "chat" not in st.session_state:
     st.session_state.chat = []
