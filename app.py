@@ -13,7 +13,7 @@ import requests
 DATA_DIR = "dataset"
 FAISS_DIR = "faiss_store"
 EMBED_MODEL_NAME = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
-TOGETHER_API_KEY = st.secrets["TOGETHER_API_KEY"]
+TOGETHER_API_KEYS = st.secrets["TOGETHER_API_KEYS"]
 TOGETHER_MODEL = "mistralai/Mixtral-8x7B-Instruct-v0.1"
 
 # === LOAD MODELS ===
