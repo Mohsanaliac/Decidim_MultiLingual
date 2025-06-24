@@ -43,45 +43,44 @@ def search(question, top_k=3):
 
 # === STREAMING TOGETHER ===
 def call_together_stream(prompt):
-    headers = {
-        "Authorization": f"Bearer {TOGETHER_API_KEY}",
-        "Content-Type": "application/json"
-    }
-    body = {
-        "model": TOGETHER_MODEL,
-        "messages": [{"role": "user", "content": prompt}],
-        "temperature": 0.3,
-        "max_tokens": 512,
-        "stream": True
-    }
-    response = requests.post("https://api.together.xyz/v1/chat/completions", headers=headers, json=body, stream=True)
+    for api_key in TOGETHER_API_KEYS:
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
+        body = {
+            "model": TOGETHER_MODEL,
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": 0.3,
+            "max_tokens": 512,
+            "stream": True
+        }
 
-    reply = ""
-    for line in response.iter_lines():
-        if line:
-            line = line.decode("utf-8").replace("data: ", "")
-            try:
-                data = json.loads(line)
-                delta = data["choices"][0]["delta"]
-                content = delta.get("content", "")
-                reply += content
-                yield content
-            except:
-                continue
+        try:
+            response = requests.post("https://api.together.xyz/v1/chat/completions", headers=headers, json=body, stream=True)
 
-# === RAG PIPELINE ===
-def answer_question(question):
-    context = search(question)
-    prompt = f"""First understand the question itseld, wether its a general question about your introduction or they want to know something about Decidim. If user greet you, reply as an helpful assistent who will help them to understand the Decidim tool through interaction with you. You are an assistant that answers only based on the provided context from Decidim documentation.
-                    Do not guess or add any information not present in the context. If the answer is not in the context,
-                    respond with: "This is beyond my current knowledge base."
+            if response.status_code == 200:
+                reply = ""
+                for line in response.iter_lines():
+                    if line:
+                        line = line.decode("utf-8").replace("data: ", "")
+                        try:
+                            data = json.loads(line)
+                            delta = data["choices"][0]["delta"]
+                            content = delta.get("content", "")
+                            reply += content
+                            yield content
+                        except:
+                            continue
+                return
+            else:
+                continue  # silently try next key
+        except:
+            continue  # silently try next key
 
-Context:
-{context}
+    # All keys failed
+    yield "Sorry, I'm currently unavailable. Please try again later."
 
-Question: {question}
-Answer:"""
-    return call_together_stream(prompt), context
 
 # === STREAMLIT UI ===
 st.set_page_config(page_title="Decidim Chatbot", layout="centered")
