@@ -43,7 +43,7 @@ def search(question, top_k=3):
 
 # === STREAMING TOGETHER ===
 def call_together_stream(prompt):
-    for api_key in TOGETHER_API_KEYS:
+    def stream_with_key(api_key):
         headers = {
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json"
@@ -58,9 +58,10 @@ def call_together_stream(prompt):
 
         try:
             response = requests.post("https://api.together.xyz/v1/chat/completions", headers=headers, json=body, stream=True)
+            if response.status_code != 200:
+                return None
 
-            if response.status_code == 200:
-                reply = ""
+            def generator():
                 for line in response.iter_lines():
                     if line:
                         line = line.decode("utf-8").replace("data: ", "")
@@ -68,18 +69,23 @@ def call_together_stream(prompt):
                             data = json.loads(line)
                             delta = data["choices"][0]["delta"]
                             content = delta.get("content", "")
-                            reply += content
                             yield content
                         except:
                             continue
-                return
-            else:
-                continue  # silently try next key
+            return generator()
         except:
-            continue  # silently try next key
+            return None
 
-    # All keys failed
-    yield "Sorry, I'm currently unavailable. Please try again later."
+    for key in TOGETHER_API_KEYS:
+        gen = stream_with_key(key)
+        if gen is not None:
+            return gen
+
+    # fallback generator if all keys fail
+    def fallback():
+        yield "Sorry, I'm currently unavailable. Please try again later."
+    return fallback()
+
 
 
 # === STREAMLIT UI ===
