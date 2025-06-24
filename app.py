@@ -85,6 +85,22 @@ def call_together_stream(prompt):
     def fallback():
         yield "Sorry, I'm currently unavailable. Please try again later."
     return fallback()
+# === RAG PIPELINE ===
+
+def answer_question(question):
+    context = search(question)
+    prompt = f"""First understand the question itself, whether it's a general question about your introduction or something specific about Decidim.
+You are an assistant that answers only based on the provided context from Decidim documentation.
+Do not guess or add any information not present in the context. If the answer is not in the context,
+respond with: "This is beyond my current knowledge base."
+
+Context:
+{context}
+
+Question: {question}
+Answer:"""
+    return call_together_stream(prompt), context
+
 
 # === STREAMLIT UI ===
 st.set_page_config(page_title="Decidim Chatbot", layout="centered")
