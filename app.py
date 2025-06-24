@@ -86,8 +86,6 @@ def call_together_stream(prompt):
         yield "Sorry, I'm currently unavailable. Please try again later."
     return fallback()
 
-
-
 # === STREAMLIT UI ===
 st.set_page_config(page_title="Decidim Chatbot", layout="centered")
 st.title("🗳️ Decidim Chatbot")
